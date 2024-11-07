@@ -14,6 +14,7 @@ var CURRENT_SPEED = 0
 
 @onready var head = $Head
 @onready var camera = $Head/Camera3D
+@onready var weaponhandler = $Head/Camera3D/WeaponHandler
 
 func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
@@ -36,12 +37,16 @@ func _physics_process(delta: float) -> void:
 	# Get the input direction and handle the movement/deceleration.
 	# As good practice, you should replace UI actions with custom gameplay actions.
 	var input_dir := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	
 	var direction = (head.global_transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+	
 	if CURRENT_SPEED <= MAX_SPEED:
 		CURRENT_SPEED +=ACCELERATION * delta
+	
 	if direction.x == 0:
 			CURRENT_SPEED = 0
 			velocity.x = 0
+	
 	if direction.z == 0:
 			CURRENT_SPEED = 0
 			velocity.z = 0
@@ -51,12 +56,17 @@ func _physics_process(delta: float) -> void:
 	if direction:
 		velocity.x = direction.x * CURRENT_SPEED
 		velocity.z = direction.z * CURRENT_SPEED
+		weaponhandler.update_sway(true)
+		
 	else:
 		velocity.x = move_toward(velocity.x, 0, CURRENT_SPEED)
 		velocity.z = move_toward(velocity.z, 0, CURRENT_SPEED)
+		weaponhandler.update_sway(false)
+		
 	t_bob += delta * velocity.length() * float(is_on_floor())
 	head.transform.origin = _headbob(t_bob)
-
+		
+	
 	move_and_slide()
 
 func _headbob(time) -> Vector3:
